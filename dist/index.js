@@ -11,6 +11,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
 const customer_routes_1 = __importDefault(require("./routes/customer.routes"));
 const vendor_routes_1 = __importDefault(require("./routes/vendor.routes"));
+const employee_routes_1 = __importDefault(require("./routes/employee.routes"));
 const errorHandler_1 = require("./middlewares/errorHandler");
 const path_1 = __importDefault(require("path"));
 dotenv_1.default.config();
@@ -38,6 +39,7 @@ app.use('/uploads', express_1.default.static(path_1.default.join(process.cwd(), 
 // Routes
 app.use('/api/auth', auth_routes_1.default);
 app.use('/api/customers', customer_routes_1.default);
+app.use('/api/employees', employee_routes_1.default);
 app.use('/api', vendor_routes_1.default);
 // Health check endpoint
 app.get('/health', (req, res) => {

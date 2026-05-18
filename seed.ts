@@ -15,6 +15,35 @@ async function seed() {
     },
   });
   console.log('Seeded admin user:', user.email);
+
+  const employeeNames = [
+    'Rohan Sharma',
+    'Priya Patel',
+    'Amit Verma',
+    'Sneha Reddy',
+    'Vikram Malhotra',
+    'Ananya Sen',
+    'Deepak Gupta',
+    'Meera Nair',
+    'Rajesh Rao',
+    'Kavita Joshi'
+  ];
+
+  console.log('Seeding employees...');
+  for (const name of employeeNames) {
+    const existing = await prisma.employee.findFirst({
+      where: { name, deletedAt: null }
+    });
+    if (!existing) {
+      const emp = await prisma.employee.create({
+        data: { name }
+      });
+      console.log('Created employee:', emp.name);
+    } else {
+      console.log('Employee already exists:', name);
+    }
+  }
+
   await prisma.$disconnect();
 }
 

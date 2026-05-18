@@ -161,3 +161,17 @@ model VendorDocument {
   @@map("vendor_documents")
 }
 
+model Employee {
+  id           String         @id @default(uuid()) @db.Uuid
+  name         String
+  
+  // Audit Fields
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  deletedAt    DateTime?
+
+  @@map("employees")
+  @@index([name])
+  @@index([deletedAt])
+}
+
