@@ -77,3 +77,87 @@ enum CustomerStatus {
   ACTIVE
   INACTIVE
 }
+
+enum VendorStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum VendorType {
+  INDIVIDUAL
+  COMPANY
+}
+
+model Vendor {
+  id                    String           @id @default(uuid()) @db.Uuid
+  vendorType            VendorType       @default(COMPANY)
+  companyName           String?          // Nullable, required only if COMPANY
+  vendorName            String
+  phoneNumber           String
+  email                 String
+  ccEmails              String[]
+  status                VendorStatus     @default(ACTIVE)
+  clientLogo            String?          // Stores uploaded logo path
+
+  // Tax Details
+  gstApplicable         Boolean          @default(false)
+  gstinNumber           String?
+  verifiedGstinName     String?
+  panNumber             String?
+  panName               String?
+  tdsApplicable         Boolean          @default(false)
+  tdsSection            String?
+  tdsPercentage         Decimal?         @db.Decimal(5, 2)
+
+  // Address Details
+  addressLine1          String
+  addressLine2          String?
+  country               String           @default("India")
+  state                 String
+  city                  String
+  pincode               String
+
+  // Bank Details
+  bankAccountHolderName String?
+  bankName              String?
+  bankAccountNumber     String?
+  bankIfscCode          String?
+  bankSwiftCode         String?
+  bankBranchName        String?
+
+  // Audit Fields
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  deletedAt             DateTime?
+
+  documents             VendorDocument[]
+
+  @@map("vendors")
+  @@index([vendorName])
+  @@index([companyName])
+  @@index([email])
+  @@index([phoneNumber])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+model VendorDocument {
+  id               String    @id @default(uuid()) @db.Uuid
+  vendor           Vendor    @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  vendorId         String    @db.Uuid
+  documentType     String    // "PAN", "GSTIN", "TDS", "MSME", "PO", "Agreement/Contract", "Invoice", "Bank Details", "Aadhaar / ID", "Other Documents"
+  originalFileName String
+  storedFileName   String
+  mimeType         String
+  fileSize         Int
+  versionNumber    Int       @default(1)
+  remarks          String?
+  isLatest         Boolean   @default(true)
+  uploadedAt       DateTime  @default(now())
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+
+  @@map("vendor_documents")
+}
+
