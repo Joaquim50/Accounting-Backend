@@ -10,7 +10,8 @@ import {
   getCustomerDocumentsByType,
   removeDocument,
   markDocumentAsLatest,
-  uploadCustomerLogo
+  uploadCustomerLogo,
+  getCustomerDropdown
 } from '../controllers/customer.controller';
 import { authenticate } from '../middlewares/auth.middleware';
 import { upload } from '../middlewares/upload.middleware';
@@ -22,6 +23,7 @@ router.use(authenticate);
 
 // Base customer routes
 router.get('/', getCustomers);
+router.get('/dropdown', getCustomerDropdown);
 router.post('/', createCustomer);
 router.get('/:id', getCustomerById);
 router.put('/:id', updateCustomer);

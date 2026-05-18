@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.markVendorDocumentAsLatest = exports.removeVendorDocument = exports.getVendorDocumentsByType = exports.getVendorDocuments = exports.uploadVendorDocuments = exports.uploadVendorLogo = exports.deleteVendor = exports.updateVendorStatus = exports.updateVendor = exports.createVendor = exports.getVendorById = exports.getVendors = void 0;
+exports.getVendorDropdown = exports.markVendorDocumentAsLatest = exports.removeVendorDocument = exports.getVendorDocumentsByType = exports.getVendorDocuments = exports.uploadVendorDocuments = exports.uploadVendorLogo = exports.deleteVendor = exports.updateVendorStatus = exports.updateVendor = exports.createVendor = exports.getVendorById = exports.getVendors = void 0;
 const vendor_service_1 = require("../services/vendor.service");
 const vendor_validator_1 = require("../validators/vendor.validator");
 const client_1 = require("@prisma/client");
@@ -354,3 +354,18 @@ const markVendorDocumentAsLatest = async (req, res, next) => {
     }
 };
 exports.markVendorDocumentAsLatest = markVendorDocumentAsLatest;
+// 13. Get active vendors dropdown list
+const getVendorDropdown = async (req, res, next) => {
+    try {
+        const vendors = await vendor_service_1.VendorService.getVendorDropdown();
+        res.json({
+            success: true,
+            message: 'Vendor dropdown retrieved successfully',
+            data: vendors,
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.getVendorDropdown = getVendorDropdown;

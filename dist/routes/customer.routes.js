@@ -9,6 +9,7 @@ const router = (0, express_1.Router)();
 router.use(auth_middleware_1.authenticate);
 // Base customer routes
 router.get('/', customer_controller_1.getCustomers);
+router.get('/dropdown', customer_controller_1.getCustomerDropdown);
 router.post('/', customer_controller_1.createCustomer);
 router.get('/:id', customer_controller_1.getCustomerById);
 router.put('/:id', customer_controller_1.updateCustomer);

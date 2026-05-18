@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.uploadCustomerLogo = exports.markDocumentAsLatest = exports.removeDocument = exports.getCustomerDocumentsByType = exports.getCustomerDocuments = exports.uploadDocuments = exports.deleteCustomer = exports.updateCustomer = exports.createCustomer = exports.getCustomerById = exports.getCustomers = void 0;
+exports.getCustomerDropdown = exports.uploadCustomerLogo = exports.markDocumentAsLatest = exports.removeDocument = exports.getCustomerDocumentsByType = exports.getCustomerDocuments = exports.uploadDocuments = exports.deleteCustomer = exports.updateCustomer = exports.createCustomer = exports.getCustomerById = exports.getCustomers = void 0;
 const db_1 = require("../db");
 const customer_validator_1 = require("../validators/customer.validator");
 const fs_1 = __importDefault(require("fs"));
@@ -368,3 +368,31 @@ const uploadCustomerLogo = async (req, res, next) => {
     }
 };
 exports.uploadCustomerLogo = uploadCustomerLogo;
+// Get customer dropdown list (returns only id, companyName and contactPerson)
+const getCustomerDropdown = async (req, res, next) => {
+    try {
+        const customers = await db_1.prisma.customer.findMany({
+            where: {
+                status: 'ACTIVE',
+                deletedAt: null,
+            },
+            select: {
+                id: true,
+                companyName: true,
+                contactPerson: true,
+            },
+            orderBy: {
+                companyName: 'asc',
+            },
+        });
+        res.json({
+            success: true,
+            message: 'Customer dropdown retrieved successfully',
+            data: customers,
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.getCustomerDropdown = getCustomerDropdown;

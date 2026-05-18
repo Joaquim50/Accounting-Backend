@@ -400,3 +400,31 @@ export const uploadCustomerLogo = async (req: Request, res: Response, next: Next
   }
 };
 
+// Get customer dropdown list (returns only id, companyName and contactPerson)
+export const getCustomerDropdown = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const customers = await prisma.customer.findMany({
+      where: {
+        status: 'ACTIVE',
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        companyName: true,
+        contactPerson: true,
+      },
+      orderBy: {
+        companyName: 'asc',
+      },
+    });
+
+    res.json({
+      success: true,
+      message: 'Customer dropdown retrieved successfully',
+      data: customers,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

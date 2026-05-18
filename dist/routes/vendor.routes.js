@@ -9,6 +9,7 @@ const router = (0, express_1.Router)();
 router.use(auth_middleware_1.authenticate);
 // Base vendor routes
 router.get('/vendors', vendor_controller_1.getVendors);
+router.get('/vendors/dropdown', vendor_controller_1.getVendorDropdown);
 router.post('/vendors', vendor_controller_1.createVendor);
 router.get('/vendors/:id', vendor_controller_1.getVendorById);
 router.put('/vendors/:id', vendor_controller_1.updateVendor);

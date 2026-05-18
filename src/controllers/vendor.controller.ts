@@ -370,3 +370,17 @@ export const markVendorDocumentAsLatest = async (req: Request, res: Response, ne
     next(error);
   }
 };
+
+// 13. Get active vendors dropdown list
+export const getVendorDropdown = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const vendors = await VendorService.getVendorDropdown();
+    res.json({
+      success: true,
+      message: 'Vendor dropdown retrieved successfully',
+      data: vendors,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

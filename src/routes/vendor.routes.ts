@@ -11,7 +11,8 @@ import {
   getVendorDocuments,
   getVendorDocumentsByType,
   removeVendorDocument,
-  markVendorDocumentAsLatest
+  markVendorDocumentAsLatest,
+  getVendorDropdown
 } from '../controllers/vendor.controller';
 import { authenticate } from '../middlewares/auth.middleware';
 import { vendorUpload } from '../middlewares/vendorUpload.middleware';
@@ -23,6 +24,7 @@ router.use(authenticate);
 
 // Base vendor routes
 router.get('/vendors', getVendors);
+router.get('/vendors/dropdown', getVendorDropdown);
 router.post('/vendors', createVendor);
 router.get('/vendors/:id', getVendorById);
 router.put('/vendors/:id', updateVendor);

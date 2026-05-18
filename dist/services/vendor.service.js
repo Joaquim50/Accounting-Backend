@@ -277,5 +277,22 @@ class VendorService {
             data: { isLatest: true }
         });
     }
+    // 13. Get Vendor Dropdown list (returns only id, vendorName, and companyName)
+    static async getVendorDropdown() {
+        return db_1.prisma.vendor.findMany({
+            where: {
+                status: client_1.VendorStatus.ACTIVE,
+                deletedAt: null,
+            },
+            select: {
+                id: true,
+                vendorName: true,
+                companyName: true,
+            },
+            orderBy: {
+                vendorName: 'asc',
+            },
+        });
+    }
 }
 exports.VendorService = VendorService;
