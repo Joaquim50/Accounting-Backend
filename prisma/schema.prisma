@@ -131,6 +131,7 @@ model Vendor {
   deletedAt             DateTime?
 
   documents             VendorDocument[]
+  payments              Payment[]
 
   @@map("vendors")
   @@index([vendorName])
@@ -169,9 +170,84 @@ model Employee {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   deletedAt    DateTime?
+  payments     Payment[]
 
   @@map("employees")
   @@index([name])
+  @@index([deletedAt])
+}
+
+enum PaymentFrequency {
+  ONE_TIME
+  RECURRING
+}
+
+enum PartyType {
+  VENDOR
+  EMPLOYEE
+  HOUSEHOLD
+  OTHER
+}
+
+enum DeductionType {
+  NONE
+  TDS
+  PT
+  OTHER
+}
+
+enum PaymentStatus {
+  PENDING
+  PART_PAID
+  PAID
+}
+
+model Payment {
+  id                      String           @id @default(uuid()) @db.Uuid
+  paymentFrequency        PaymentFrequency @default(ONE_TIME) @map("payment_frequency")
+  expenseDate             DateTime         @map("expense_date") @db.Date
+  expenseType             String           @map("expense_type")
+  partyType               PartyType        @map("party_type")
+  
+  // Relations/Custom Parties
+  vendorId                String?          @db.Uuid @map("vendor_id")
+  vendor                  Vendor?          @relation(fields: [vendorId], references: [id])
+  employeeId              String?          @db.Uuid @map("employee_id")
+  employee                Employee?        @relation(fields: [employeeId], references: [id])
+  partyNameCustom         String?          @map("party_name_custom")
+
+  notes                   String?          @db.Text
+
+  // Financial details
+  baseAmount              Decimal          @map("base_amount") @db.Decimal(12, 2)
+  gstApplicable           Boolean          @default(false) @map("gst_applicable")
+  gstPercentage           Decimal?         @map("gst_percentage") @db.Decimal(5, 2)
+  gstAmount               Decimal          @default(0) @map("gst_amount") @db.Decimal(12, 2)
+
+  // Deduction details
+  deductionType           DeductionType    @default(NONE) @map("deduction_type")
+  deductionPercentageTDS  Decimal?         @map("deduction_percentage_tds") @db.Decimal(5, 2)
+  ptAmountFixed           Decimal?         @map("pt_amount_fixed") @db.Decimal(12, 2)
+  deductionPercentageOther Decimal?        @map("deduction_percentage_other") @db.Decimal(5, 2)
+  deductionAmount         Decimal          @default(0) @map("deduction_amount") @db.Decimal(12, 2)
+
+  netPayable              Decimal          @map("net_payable") @db.Decimal(12, 2)
+
+  // Optional/Payment tracking
+  paidAmount              Decimal          @default(0) @map("paid_amount") @db.Decimal(12, 2)
+  balance                 Decimal          @default(0) @map("balance") @db.Decimal(12, 2)
+  paymentStatus           PaymentStatus    @default(PENDING) @map("payment_status")
+
+  // Audit Fields
+  createdAt               DateTime         @default(now()) @map("created_at")
+  updatedAt               DateTime         @updatedAt @map("updated_at")
+  deletedAt               DateTime?        @map("deleted_at")
+
+  @@map("payments")
+  @@index([expenseDate])
+  @@index([expenseType])
+  @@index([partyType])
+  @@index([paymentStatus])
   @@index([deletedAt])
 }
 
