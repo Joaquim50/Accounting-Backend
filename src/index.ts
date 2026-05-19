@@ -10,6 +10,7 @@ import employeeRoutes from './routes/employee.routes';
 import paymentRoutes from './routes/payment.routes';
 import projectedSaleRoutes from './routes/projectedSale.routes';
 import amcRoutes from './routes/amc.routes';
+import invoiceRoutes from './routes/invoice.routes';
 import { errorHandler } from './middlewares/errorHandler';
 import path from 'path';
 
@@ -48,6 +49,7 @@ app.use('/api/employees', employeeRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/projected-sales', projectedSaleRoutes);
 app.use('/api/amcs', amcRoutes);
+app.use('/api/invoices', invoiceRoutes);
 app.use('/api', vendorRoutes);
 
 // Health check endpoint
