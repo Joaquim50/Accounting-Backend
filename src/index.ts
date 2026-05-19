@@ -11,6 +11,7 @@ import paymentRoutes from './routes/payment.routes';
 import projectedSaleRoutes from './routes/projectedSale.routes';
 import amcRoutes from './routes/amc.routes';
 import invoiceRoutes from './routes/invoice.routes';
+import billingRoutes from './routes/billing.routes';
 import { errorHandler } from './middlewares/errorHandler';
 import path from 'path';
 
@@ -50,6 +51,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/projected-sales', projectedSaleRoutes);
 app.use('/api/amcs', amcRoutes);
 app.use('/api/invoices', invoiceRoutes);
+app.use('/api/billing', billingRoutes);
 app.use('/api', vendorRoutes);
 
 // Health check endpoint
