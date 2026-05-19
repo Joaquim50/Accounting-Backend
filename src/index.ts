@@ -8,6 +8,7 @@ import customerRoutes from './routes/customer.routes';
 import vendorRoutes from './routes/vendor.routes';
 import employeeRoutes from './routes/employee.routes';
 import paymentRoutes from './routes/payment.routes';
+import projectedSaleRoutes from './routes/projectedSale.routes';
 import { errorHandler } from './middlewares/errorHandler';
 import path from 'path';
 
@@ -44,6 +45,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/projected-sales', projectedSaleRoutes);
 app.use('/api', vendorRoutes);
 
 // Health check endpoint
