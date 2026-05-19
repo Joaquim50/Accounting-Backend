@@ -14,6 +14,7 @@ const vendor_routes_1 = __importDefault(require("./routes/vendor.routes"));
 const employee_routes_1 = __importDefault(require("./routes/employee.routes"));
 const payment_routes_1 = __importDefault(require("./routes/payment.routes"));
 const projectedSale_routes_1 = __importDefault(require("./routes/projectedSale.routes"));
+const amc_routes_1 = __importDefault(require("./routes/amc.routes"));
 const errorHandler_1 = require("./middlewares/errorHandler");
 const path_1 = __importDefault(require("path"));
 dotenv_1.default.config();
@@ -44,6 +45,7 @@ app.use('/api/customers', customer_routes_1.default);
 app.use('/api/employees', employee_routes_1.default);
 app.use('/api/payments', payment_routes_1.default);
 app.use('/api/projected-sales', projectedSale_routes_1.default);
+app.use('/api/amcs', amc_routes_1.default);
 app.use('/api', vendor_routes_1.default);
 // Health check endpoint
 app.get('/health', (req, res) => {
