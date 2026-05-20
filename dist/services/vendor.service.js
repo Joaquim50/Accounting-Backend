@@ -32,6 +32,20 @@ class VendorService {
         else if (options.vendorType === 'COMPANY') {
             where.vendorType = client_1.VendorType.COMPANY;
         }
+        // Apply date range filters
+        if (options.startDate || options.endDate) {
+            where.createdAt = {};
+            if (options.startDate) {
+                where.createdAt.gte = new Date(options.startDate);
+            }
+            if (options.endDate) {
+                const end = new Date(options.endDate);
+                if (options.endDate.length <= 10) {
+                    end.setHours(23, 59, 59, 999);
+                }
+                where.createdAt.lte = end;
+            }
+        }
         // Fetch list and total count
         const [vendors, total] = await Promise.all([
             db_1.prisma.vendor.findMany({

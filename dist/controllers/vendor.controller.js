@@ -12,13 +12,15 @@ const path_1 = __importDefault(require("path"));
 // 1. Get all vendors
 const getVendors = async (req, res, next) => {
     try {
-        const { search, active, vendorType, page, limit } = req.query;
+        const { search, active, vendorType, page, limit, startDate, endDate } = req.query;
         const result = await vendor_service_1.VendorService.getVendors({
             search: search,
             active: active,
             vendorType: vendorType,
             page: page ? parseInt(page, 10) : 1,
             limit: limit ? parseInt(limit, 10) : 10,
+            startDate: startDate,
+            endDate: endDate,
         });
         res.json({
             success: true,

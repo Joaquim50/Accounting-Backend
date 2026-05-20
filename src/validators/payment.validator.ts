@@ -106,7 +106,12 @@ export const createPaymentSchema = basePaymentObject.superRefine((data, ctx) => 
   }
 });
 
-// 3. Schema for updating a Payment (all fields optional, refinement is defensive)
+// 3. Schema for bulk creating Payments
+export const bulkCreatePaymentSchema = z.object({
+  payments: z.array(createPaymentSchema).min(1, 'At least one payment is required for bulk upload'),
+});
+
+// 4. Schema for updating a Payment (all fields optional, refinement is defensive)
 export const updatePaymentSchema = basePaymentObject.partial().superRefine((data, ctx) => {
   // Only apply refinements if the field triggers are actually updated in the payload
 

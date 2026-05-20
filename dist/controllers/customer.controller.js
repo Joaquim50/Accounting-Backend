@@ -11,7 +11,7 @@ const path_1 = __importDefault(require("path"));
 // Get all customers (with pagination, search, and filtering)
 const getCustomers = async (req, res, next) => {
     try {
-        const { search, active, page = 1, limit = 10 } = req.query;
+        const { search, active, page = 1, limit = 10, startDate, endDate } = req.query;
         const pageNumber = parseInt(page, 10);
         const pageSize = parseInt(limit, 10);
         const where = { deletedAt: null };
@@ -24,6 +24,20 @@ const getCustomers = async (req, res, next) => {
         }
         if (active) {
             where.status = active === 'true' ? 'ACTIVE' : 'INACTIVE';
+        }
+        // Apply date range filters
+        if (startDate || endDate) {
+            where.createdAt = {};
+            if (startDate) {
+                where.createdAt.gte = new Date(startDate);
+            }
+            if (endDate) {
+                const end = new Date(endDate);
+                if (endDate.length <= 10) {
+                    end.setHours(23, 59, 59, 999);
+                }
+                where.createdAt.lte = end;
+            }
         }
         const [customers, total] = await Promise.all([
             db_1.prisma.customer.findMany({

@@ -6,11 +6,13 @@ const employee_validator_1 = require("../validators/employee.validator");
 // 1. Get all employees
 const getEmployees = async (req, res, next) => {
     try {
-        const { search, page, limit } = req.query;
+        const { search, page, limit, startDate, endDate } = req.query;
         const result = await employee_service_1.EmployeeService.getEmployees({
             search: search,
             page: page ? parseInt(page, 10) : 1,
             limit: limit ? parseInt(limit, 10) : 10,
+            startDate: startDate,
+            endDate: endDate,
         });
         res.json({
             success: true,

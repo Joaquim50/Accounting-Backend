@@ -8,20 +8,20 @@ const router = (0, express_1.Router)();
 // Apply auth middleware to all customer routes
 router.use(auth_middleware_1.authenticate);
 // Base customer routes
-router.get('/', customer_controller_1.getCustomers);
-router.get('/dropdown', customer_controller_1.getCustomerDropdown);
-router.post('/', customer_controller_1.createCustomer);
-router.get('/:id', customer_controller_1.getCustomerById);
-router.put('/:id', customer_controller_1.updateCustomer);
-router.patch('/:id/status', customer_controller_1.updateCustomer);
-router.delete('/:id', customer_controller_1.deleteCustomer);
+router.get('/', (0, auth_middleware_1.authorizePermission)('customers.view'), customer_controller_1.getCustomers);
+router.get('/dropdown', (0, auth_middleware_1.authorizePermission)('customers.view'), customer_controller_1.getCustomerDropdown);
+router.post('/', (0, auth_middleware_1.authorizePermission)('customers.create'), customer_controller_1.createCustomer);
+router.get('/:id', (0, auth_middleware_1.authorizePermission)('customers.view'), customer_controller_1.getCustomerById);
+router.put('/:id', (0, auth_middleware_1.authorizePermission)('customers.edit'), customer_controller_1.updateCustomer);
+router.patch('/:id/status', (0, auth_middleware_1.authorizePermission)('customers.edit'), customer_controller_1.updateCustomer);
+router.delete('/:id', (0, auth_middleware_1.authorizePermission)('customers.delete'), customer_controller_1.deleteCustomer);
 // Logo upload route
-router.post('/:id/logo', upload_middleware_1.upload.single('logo'), customer_controller_1.uploadCustomerLogo);
+router.post('/:id/logo', (0, auth_middleware_1.authorizePermission)('customers.edit'), upload_middleware_1.upload.single('logo'), customer_controller_1.uploadCustomerLogo);
 // Document specific routes nested under customer
-router.get('/:id/documents', customer_controller_1.getCustomerDocuments);
-router.post('/:id/documents', upload_middleware_1.upload.array('files', 10), customer_controller_1.uploadDocuments);
-router.get('/:id/documents/:type', customer_controller_1.getCustomerDocumentsByType);
+router.get('/:id/documents', (0, auth_middleware_1.authorizePermission)('customers.view'), customer_controller_1.getCustomerDocuments);
+router.post('/:id/documents', (0, auth_middleware_1.authorizePermission)('customers.edit'), upload_middleware_1.upload.array('files', 10), customer_controller_1.uploadDocuments);
+router.get('/:id/documents/:type', (0, auth_middleware_1.authorizePermission)('customers.view'), customer_controller_1.getCustomerDocumentsByType);
 // Document operation routes
-router.patch('/documents/:documentId/latest', customer_controller_1.markDocumentAsLatest);
-router.delete('/documents/:documentId', customer_controller_1.removeDocument);
+router.patch('/documents/:documentId/latest', (0, auth_middleware_1.authorizePermission)('customers.edit'), customer_controller_1.markDocumentAsLatest);
+router.delete('/documents/:documentId', (0, auth_middleware_1.authorizePermission)('customers.edit'), customer_controller_1.removeDocument);
 exports.default = router;

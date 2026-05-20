@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { PaymentService } from '../services/payment.service';
-import { createPaymentSchema, updatePaymentSchema } from '../validators/payment.validator';
+import { createPaymentSchema, updatePaymentSchema, bulkCreatePaymentSchema } from '../validators/payment.validator';
 import { PaymentFrequency, PartyType, DeductionType, PaymentStatus } from '@prisma/client';
 
 // 1. Get all payments with filters and pagination
@@ -73,6 +73,23 @@ export const createPayment = async (req: Request, res: Response, next: NextFunct
       data: payment,
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+// 3.5 Bulk create payments
+export const bulkCreatePayments = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const parsedData = bulkCreatePaymentSchema.parse(req.body);
+    const payments = await PaymentService.bulkCreatePayments(parsedData.payments);
+
+    res.status(201).json({
+      success: true,
+      message: `${payments.length} payment records created successfully via bulk upload`,
+      data: payments,
+    });
+  } catch (error) {
+    console.error("Bulk Upload Error:", error);
     next(error);
   }
 };

@@ -17,7 +17,14 @@ const login = async (req, res, next) => {
         const validatedData = loginSchema.parse(req.body);
         const { email, password } = validatedData;
         const user = await db_1.prisma.user.findFirst({
-            where: { email, isActive: true }
+            where: { email, status: 'ACTIVE', deletedAt: null },
+            include: {
+                role: {
+                    include: {
+                        permissions: true
+                    }
+                }
+            }
         });
         if (!user) {
             return res.status(401).json({ message: 'Invalid credentials or inactive account.' });
@@ -29,7 +36,7 @@ const login = async (req, res, next) => {
         if (!process.env.JWT_SECRET) {
             throw new Error('JWT_SECRET is not defined');
         }
-        const token = jsonwebtoken_1.default.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: (process.env.JWT_EXPIRES_IN || '1d') });
+        const token = jsonwebtoken_1.default.sign({ id: user.id, role: user.role.roleName }, process.env.JWT_SECRET, { expiresIn: (process.env.JWT_EXPIRES_IN || '1d') });
         res.json({
             status: 'success',
             data: {
@@ -37,7 +44,10 @@ const login = async (req, res, next) => {
                 user: {
                     id: user.id,
                     email: user.email,
-                    role: user.role,
+                    role: user.role.roleName,
+                    permissions: user.role.permissions,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
                 }
             }
         });
@@ -53,9 +63,18 @@ exports.login = login;
 const getMe = async (req, res, next) => {
     try {
         const userId = req.user?.id;
-        const user = await db_1.prisma.user.findUnique({
-            where: { id: userId },
-            select: { id: true, email: true, role: true, isActive: true, createdAt: true }
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized.' });
+        }
+        const user = await db_1.prisma.user.findFirst({
+            where: { id: userId, deletedAt: null },
+            include: {
+                role: {
+                    include: {
+                        permissions: true
+                    }
+                }
+            }
         });
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
@@ -63,7 +82,16 @@ const getMe = async (req, res, next) => {
         res.json({
             status: 'success',
             data: {
-                user
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    role: user.role.roleName,
+                    permissions: user.role.permissions,
+                    status: user.status,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    createdAt: user.createdAt
+                }
             }
         });
     }

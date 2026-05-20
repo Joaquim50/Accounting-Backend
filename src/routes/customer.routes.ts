@@ -13,7 +13,7 @@ import {
   uploadCustomerLogo,
   getCustomerDropdown
 } from '../controllers/customer.controller';
-import { authenticate } from '../middlewares/auth.middleware';
+import { authenticate, authorizePermission } from '../middlewares/auth.middleware';
 import { upload } from '../middlewares/upload.middleware';
 
 const router = Router();
@@ -22,24 +22,24 @@ const router = Router();
 router.use(authenticate);
 
 // Base customer routes
-router.get('/', getCustomers);
-router.get('/dropdown', getCustomerDropdown);
-router.post('/', createCustomer);
-router.get('/:id', getCustomerById);
-router.put('/:id', updateCustomer);
-router.patch('/:id/status', updateCustomer);
-router.delete('/:id', deleteCustomer);
+router.get('/', authorizePermission('customers.view'), getCustomers);
+router.get('/dropdown', authorizePermission('customers.view'), getCustomerDropdown);
+router.post('/', authorizePermission('customers.create'), createCustomer);
+router.get('/:id', authorizePermission('customers.view'), getCustomerById);
+router.put('/:id', authorizePermission('customers.edit'), updateCustomer);
+router.patch('/:id/status', authorizePermission('customers.edit'), updateCustomer);
+router.delete('/:id', authorizePermission('customers.delete'), deleteCustomer);
 
 // Logo upload route
-router.post('/:id/logo', upload.single('logo'), uploadCustomerLogo);
+router.post('/:id/logo', authorizePermission('customers.edit'), upload.single('logo'), uploadCustomerLogo);
 
 // Document specific routes nested under customer
-router.get('/:id/documents', getCustomerDocuments);
-router.post('/:id/documents', upload.array('files', 10), uploadDocuments);
-router.get('/:id/documents/:type', getCustomerDocumentsByType);
+router.get('/:id/documents', authorizePermission('customers.view'), getCustomerDocuments);
+router.post('/:id/documents', authorizePermission('customers.edit'), upload.array('files', 10), uploadDocuments);
+router.get('/:id/documents/:type', authorizePermission('customers.view'), getCustomerDocumentsByType);
 
 // Document operation routes
-router.patch('/documents/:documentId/latest', markDocumentAsLatest);
-router.delete('/documents/:documentId', removeDocument);
+router.patch('/documents/:documentId/latest', authorizePermission('customers.edit'), markDocumentAsLatest);
+router.delete('/documents/:documentId', authorizePermission('customers.edit'), removeDocument);
 
 export default router;

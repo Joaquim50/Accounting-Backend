@@ -3,10 +3,11 @@ import {
   getPayments,
   getPaymentById,
   createPayment,
+  bulkCreatePayments,
   updatePayment,
   deletePayment,
 } from '../controllers/payment.controller';
-import { authenticate } from '../middlewares/auth.middleware';
+import { authenticate, authorizePermission } from '../middlewares/auth.middleware';
 
 const router = Router();
 
@@ -14,10 +15,11 @@ const router = Router();
 router.use(authenticate);
 
 // Core Payment routing
-router.get('/', getPayments);
-router.post('/', createPayment);
-router.get('/:id', getPaymentById);
-router.put('/:id', updatePayment);
-router.delete('/:id', deletePayment);
+router.get('/', authorizePermission('expenses.view'), getPayments);
+router.post('/bulk', authorizePermission('expenses.create'), bulkCreatePayments);
+router.post('/', authorizePermission('expenses.create'), createPayment);
+router.get('/:id', authorizePermission('expenses.view'), getPaymentById);
+router.put('/:id', authorizePermission('expenses.edit'), updatePayment);
+router.delete('/:id', authorizePermission('expenses.delete'), deletePayment);
 
 export default router;

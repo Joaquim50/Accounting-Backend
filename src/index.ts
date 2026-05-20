@@ -1,3 +1,4 @@
+// Trigger backend dev server reload after database schema update
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -12,6 +13,8 @@ import projectedSaleRoutes from './routes/projectedSale.routes';
 import amcRoutes from './routes/amc.routes';
 import invoiceRoutes from './routes/invoice.routes';
 import billingRoutes from './routes/billing.routes';
+import userRoutes from './routes/user.routes';
+import roleRoutes from './routes/role.routes';
 import { errorHandler } from './middlewares/errorHandler';
 import path from 'path';
 
@@ -52,6 +55,8 @@ app.use('/api/projected-sales', projectedSaleRoutes);
 app.use('/api/amcs', amcRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/billing', billingRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/roles', roleRoutes);
 app.use('/api', vendorRoutes);
 
 // Health check endpoint

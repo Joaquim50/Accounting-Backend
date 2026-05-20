@@ -7,14 +7,14 @@ const router = (0, express_1.Router)();
 // Apply auth middleware to all Projected Sales routes
 router.use(auth_middleware_1.authenticate);
 // Core CRUD routes
-router.get('/', projectedSale_controller_1.getProjectedSales);
-router.post('/', projectedSale_controller_1.createProjectedSale);
-router.get('/:id', projectedSale_controller_1.getProjectedSaleById);
-router.put('/:id', projectedSale_controller_1.updateProjectedSale);
-router.patch('/:id/status', projectedSale_controller_1.updateProjectedSaleStatus);
-router.delete('/:id', projectedSale_controller_1.deleteProjectedSale);
+router.get('/', (0, auth_middleware_1.authorizePermission)('projectedSales.view'), projectedSale_controller_1.getProjectedSales);
+router.post('/', (0, auth_middleware_1.authorizePermission)('projectedSales.create'), projectedSale_controller_1.createProjectedSale);
+router.get('/:id', (0, auth_middleware_1.authorizePermission)('projectedSales.view'), projectedSale_controller_1.getProjectedSaleById);
+router.put('/:id', (0, auth_middleware_1.authorizePermission)('projectedSales.edit'), projectedSale_controller_1.updateProjectedSale);
+router.patch('/:id/status', (0, auth_middleware_1.authorizePermission)('projectedSales.edit'), projectedSale_controller_1.updateProjectedSaleStatus);
+router.delete('/:id', (0, auth_middleware_1.authorizePermission)('projectedSales.delete'), projectedSale_controller_1.deleteProjectedSale);
 // Milestone Level Sub-routes
-router.post('/:id/milestones', projectedSale_controller_1.addMilestone);
-router.put('/:id/milestones/:milestoneId', projectedSale_controller_1.updateMilestone);
-router.delete('/:id/milestones/:milestoneId', projectedSale_controller_1.deleteMilestone);
+router.post('/:id/milestones', (0, auth_middleware_1.authorizePermission)('projectedSales.edit'), projectedSale_controller_1.addMilestone);
+router.put('/:id/milestones/:milestoneId', (0, auth_middleware_1.authorizePermission)('projectedSales.edit'), projectedSale_controller_1.updateMilestone);
+router.delete('/:id/milestones/:milestoneId', (0, auth_middleware_1.authorizePermission)('projectedSales.edit'), projectedSale_controller_1.deleteMilestone);
 exports.default = router;

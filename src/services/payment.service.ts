@@ -125,6 +125,65 @@ export class PaymentService {
     });
   }
 
+  // 2.5 Bulk Create Payments
+  static async bulkCreatePayments(payments: any[]) {
+    const dataToInsert = payments.map((data) => {
+      const calculated = this.calculateFinancials({
+        baseAmount: data.baseAmount,
+        gstApplicable: data.gstApplicable,
+        gstPercentage: data.gstPercentage,
+        deductionType: data.deductionType,
+        deductionPercentageTDS: data.deductionPercentageTDS,
+        ptAmountFixed: data.ptAmountFixed,
+        deductionPercentageOther: data.deductionPercentageOther,
+        paidAmount: data.paidAmount,
+      });
+
+      let tds = null;
+      let pt = null;
+      let other = null;
+
+      if (data.deductionType === 'TDS') {
+        tds = data.deductionPercentageTDS;
+      } else if (data.deductionType === 'PT') {
+        pt = data.ptAmountFixed;
+      } else if (data.deductionType === 'OTHER') {
+        other = data.deductionPercentageOther;
+      }
+
+      return {
+        paymentFrequency: data.paymentFrequency,
+        expenseDate: data.expenseDate,
+        expenseType: data.expenseType,
+        partyType: data.partyType,
+        vendorId: data.vendorId || null,
+        employeeId: data.employeeId || null,
+        partyNameCustom: data.partyNameCustom || null,
+        notes: data.notes || null,
+        baseAmount: data.baseAmount,
+        gstApplicable: data.gstApplicable,
+        gstPercentage: data.gstApplicable ? (data.gstPercentage || null) : null,
+        gstAmount: calculated.gstAmount,
+        deductionType: data.deductionType,
+        deductionPercentageTDS: tds,
+        ptAmountFixed: pt,
+        deductionPercentageOther: other,
+        deductionAmount: calculated.deductionAmount,
+        netPayable: calculated.netPayable,
+        paidAmount: data.paidAmount || 0,
+        balance: calculated.balance,
+        paymentStatus: calculated.paymentStatus,
+      };
+    });
+
+    // Use a transaction for atomic insertion
+    const created = await prisma.$transaction(
+      dataToInsert.map((item) => prisma.payment.create({ data: item }))
+    );
+
+    return created;
+  }
+
   // 3. Update Payment
   static async updatePayment(id: string, data: any) {
     const existing = await prisma.payment.findUnique({

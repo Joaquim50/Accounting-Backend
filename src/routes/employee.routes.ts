@@ -7,7 +7,7 @@ import {
   updateEmployee,
   deleteEmployee,
 } from '../controllers/employee.controller';
-import { authenticate } from '../middlewares/auth.middleware';
+import { authenticate, authorizePermission } from '../middlewares/auth.middleware';
 
 const router = Router();
 
@@ -15,13 +15,13 @@ const router = Router();
 router.use(authenticate);
 
 // Dropdown list route (placed before ID route to prevent routing collision)
-router.get('/dropdown', getEmployeeDropdown);
+router.get('/dropdown', authorizePermission('employees.view'), getEmployeeDropdown);
 
 // Core CRUD Employee routes
-router.get('/', getEmployees);
-router.post('/', createEmployee);
-router.get('/:id', getEmployeeById);
-router.put('/:id', updateEmployee);
-router.delete('/:id', deleteEmployee);
+router.get('/', authorizePermission('employees.view'), getEmployees);
+router.post('/', authorizePermission('employees.create'), createEmployee);
+router.get('/:id', authorizePermission('employees.view'), getEmployeeById);
+router.put('/:id', authorizePermission('employees.edit'), updateEmployee);
+router.delete('/:id', authorizePermission('employees.delete'), deleteEmployee);
 
 export default router;

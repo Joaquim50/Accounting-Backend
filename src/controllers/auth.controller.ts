@@ -15,7 +15,14 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     const { email, password } = validatedData;
 
     const user = await prisma.user.findFirst({
-      where: { email, isActive: true }
+      where: { email, status: 'ACTIVE', deletedAt: null },
+      include: {
+        role: {
+          include: {
+            permissions: true
+          }
+        }
+      }
     });
     
     if (!user) {
@@ -33,7 +40,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     }
 
     const token = jwt.sign(
-      { id: user.id, role: user.role },
+      { id: user.id, role: user.role.roleName },
       process.env.JWT_SECRET,
       { expiresIn: (process.env.JWT_EXPIRES_IN || '1d') as jwt.SignOptions['expiresIn'] }
     );
@@ -45,7 +52,10 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
         user: {
           id: user.id,
           email: user.email,
-          role: user.role,
+          role: user.role.roleName,
+          permissions: user.role.permissions,
+          firstName: user.firstName,
+          lastName: user.lastName,
         }
       }
     });
@@ -60,9 +70,19 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 export const getMe = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.id;
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, email: true, role: true, isActive: true, createdAt: true }
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized.' });
+    }
+
+    const user = await prisma.user.findFirst({
+      where: { id: userId, deletedAt: null },
+      include: {
+        role: {
+          include: {
+            permissions: true
+          }
+        }
+      }
     });
 
     if (!user) {
@@ -72,7 +92,16 @@ export const getMe = async (req: Request, res: Response, next: NextFunction) => 
     res.json({
       status: 'success',
       data: {
-        user
+        user: {
+          id: user.id,
+          email: user.email,
+          role: user.role.roleName,
+          permissions: user.role.permissions,
+          status: user.status,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          createdAt: user.createdAt
+        }
       }
     });
   } catch (error) {
