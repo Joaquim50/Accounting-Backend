@@ -7,7 +7,7 @@ import path from 'path';
 // Get all customers (with pagination, search, and filtering)
 export const getCustomers = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { search, active, page = 1, limit = 10 } = req.query;
+    const { search, active, page = 1, limit = 10, startDate, endDate } = req.query;
     
     const pageNumber = parseInt(page as string, 10);
     const pageSize = parseInt(limit as string, 10);
@@ -24,6 +24,21 @@ export const getCustomers = async (req: Request, res: Response, next: NextFuncti
 
     if (active) {
       where.status = active === 'true' ? 'ACTIVE' : 'INACTIVE';
+    }
+
+    // Apply date range filters
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) {
+        where.createdAt.gte = new Date(startDate as string);
+      }
+      if (endDate) {
+        const end = new Date(endDate as string);
+        if ((endDate as string).length <= 10) {
+          end.setHours(23, 59, 59, 999);
+        }
+        where.createdAt.lte = end;
+      }
     }
 
     const [customers, total] = await Promise.all([

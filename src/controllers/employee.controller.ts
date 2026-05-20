@@ -5,12 +5,14 @@ import { employeeSchema } from '../validators/employee.validator';
 // 1. Get all employees
 export const getEmployees = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { search, page, limit } = req.query;
+    const { search, page, limit, startDate, endDate } = req.query;
 
     const result = await EmployeeService.getEmployees({
       search: search as string,
       page: page ? parseInt(page as string, 10) : 1,
       limit: limit ? parseInt(limit as string, 10) : 10,
+      startDate: startDate as string,
+      endDate: endDate as string,
     });
 
     res.json({

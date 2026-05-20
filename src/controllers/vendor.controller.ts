@@ -8,7 +8,7 @@ import path from 'path';
 // 1. Get all vendors
 export const getVendors = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { search, active, vendorType, page, limit } = req.query;
+    const { search, active, vendorType, page, limit, startDate, endDate } = req.query;
 
     const result = await VendorService.getVendors({
       search: search as string,
@@ -16,6 +16,8 @@ export const getVendors = async (req: Request, res: Response, next: NextFunction
       vendorType: vendorType as string,
       page: page ? parseInt(page as string, 10) : 1,
       limit: limit ? parseInt(limit as string, 10) : 10,
+      startDate: startDate as string,
+      endDate: endDate as string,
     });
 
     res.json({

@@ -7,6 +7,8 @@ export interface VendorFilterOptions {
   vendorType?: string;
   page?: number;
   limit?: number;
+  startDate?: string;
+  endDate?: string;
 }
 
 export class VendorService {
@@ -39,6 +41,21 @@ export class VendorService {
       where.vendorType = VendorType.INDIVIDUAL;
     } else if (options.vendorType === 'COMPANY') {
       where.vendorType = VendorType.COMPANY;
+    }
+
+    // Apply date range filters
+    if (options.startDate || options.endDate) {
+      where.createdAt = {};
+      if (options.startDate) {
+        where.createdAt.gte = new Date(options.startDate);
+      }
+      if (options.endDate) {
+        const end = new Date(options.endDate);
+        if (options.endDate.length <= 10) {
+          end.setHours(23, 59, 59, 999);
+        }
+        where.createdAt.lte = end;
+      }
     }
 
     // Fetch list and total count

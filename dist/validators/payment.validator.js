@@ -62,7 +62,7 @@ exports.createPaymentSchema = basePaymentObject.superRefine((data, ctx) => {
         }
     }
     // 2. Validate GST Details
-    if (data.gstApplicable) {
+    if (data.paymentFrequency !== 'RECURRING' && data.gstApplicable) {
         if (data.gstPercentage === undefined || data.gstPercentage === null) {
             ctx.addIssue({
                 code: zod_1.z.ZodIssueCode.custom,
@@ -72,31 +72,33 @@ exports.createPaymentSchema = basePaymentObject.superRefine((data, ctx) => {
         }
     }
     // 3. Validate Deduction Details based on deductionType
-    if (data.deductionType === 'TDS') {
-        if (data.deductionPercentageTDS === undefined || data.deductionPercentageTDS === null) {
-            ctx.addIssue({
-                code: zod_1.z.ZodIssueCode.custom,
-                path: ['deductionPercentageTDS'],
-                message: 'TDS percentage is required for TDS deduction type',
-            });
+    if (data.paymentFrequency !== 'RECURRING') {
+        if (data.deductionType === 'TDS') {
+            if (data.deductionPercentageTDS === undefined || data.deductionPercentageTDS === null) {
+                ctx.addIssue({
+                    code: zod_1.z.ZodIssueCode.custom,
+                    path: ['deductionPercentageTDS'],
+                    message: 'TDS percentage is required for TDS deduction type',
+                });
+            }
         }
-    }
-    else if (data.deductionType === 'PT') {
-        if (data.ptAmountFixed === undefined || data.ptAmountFixed === null) {
-            ctx.addIssue({
-                code: zod_1.z.ZodIssueCode.custom,
-                path: ['ptAmountFixed'],
-                message: 'PT amount is required for Professional Tax deduction type',
-            });
+        else if (data.deductionType === 'PT') {
+            if (data.ptAmountFixed === undefined || data.ptAmountFixed === null) {
+                ctx.addIssue({
+                    code: zod_1.z.ZodIssueCode.custom,
+                    path: ['ptAmountFixed'],
+                    message: 'PT amount is required for Professional Tax deduction type',
+                });
+            }
         }
-    }
-    else if (data.deductionType === 'OTHER') {
-        if (data.deductionPercentageOther === undefined || data.deductionPercentageOther === null) {
-            ctx.addIssue({
-                code: zod_1.z.ZodIssueCode.custom,
-                path: ['deductionPercentageOther'],
-                message: 'Other deduction percentage is required for Other deduction type',
-            });
+        else if (data.deductionType === 'OTHER') {
+            if (data.deductionPercentageOther === undefined || data.deductionPercentageOther === null) {
+                ctx.addIssue({
+                    code: zod_1.z.ZodIssueCode.custom,
+                    path: ['deductionPercentageOther'],
+                    message: 'Other deduction percentage is required for Other deduction type',
+                });
+            }
         }
     }
 });
@@ -134,7 +136,7 @@ exports.updatePaymentSchema = basePaymentObject.partial().superRefine((data, ctx
         }
     }
     // 2. Validate GST Details if gstApplicable is provided
-    if (data.gstApplicable !== undefined && data.gstApplicable === true) {
+    if (data.paymentFrequency !== 'RECURRING' && data.gstApplicable !== undefined && data.gstApplicable === true) {
         if (data.gstPercentage === undefined || data.gstPercentage === null) {
             ctx.addIssue({
                 code: zod_1.z.ZodIssueCode.custom,
@@ -144,7 +146,7 @@ exports.updatePaymentSchema = basePaymentObject.partial().superRefine((data, ctx
         }
     }
     // 3. Validate Deduction Details if deductionType is provided
-    if (data.deductionType !== undefined) {
+    if (data.paymentFrequency !== 'RECURRING' && data.deductionType !== undefined) {
         if (data.deductionType === 'TDS') {
             if (data.deductionPercentageTDS === undefined || data.deductionPercentageTDS === null) {
                 ctx.addIssue({

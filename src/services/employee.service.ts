@@ -5,12 +5,14 @@ export interface EmployeeFilterOptions {
   search?: string;
   page?: number;
   limit?: number;
+  startDate?: string;
+  endDate?: string;
 }
 
 export class EmployeeService {
   // 1. Get all employees (with pagination and search)
   static async getEmployees(options: EmployeeFilterOptions) {
-    const { search, page = 1, limit = 10 } = options;
+    const { search, page = 1, limit = 10, startDate, endDate } = options;
     const skip = (page - 1) * limit;
 
     const whereClause: Prisma.EmployeeWhereInput = {
@@ -20,6 +22,23 @@ export class EmployeeService {
     // Apply search filter (name)
     if (search) {
       whereClause.name = { contains: search, mode: 'insensitive' };
+    }
+
+    // Apply date range filters
+    if (startDate || endDate) {
+      whereClause.createdAt = {};
+      if (startDate) {
+        whereClause.createdAt.gte = new Date(startDate);
+      }
+      if (endDate) {
+        // To make endDate inclusive of the whole day, we ensure it's evaluated correctly,
+        // or just pass as Date object. Let's make sure it covers the full day.
+        const end = new Date(endDate);
+        if (endDate.length <= 10) {
+          end.setHours(23, 59, 59, 999);
+        }
+        whereClause.createdAt.lte = end;
+      }
     }
 
     const [totalCount, employees] = await Promise.all([
