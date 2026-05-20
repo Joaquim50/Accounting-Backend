@@ -22,3 +22,8 @@ export const customerSchema = z.object({
   tdsApplicable: z.boolean().optional(),
   tdsPercentage: z.number().min(0).max(100).optional()
 });
+
+export const bulkCreateCustomerSchema = z.object({
+  customers: z.array(customerSchema).min(1, 'At least one customer is required for bulk upload'),
+});
+

@@ -11,7 +11,8 @@ import {
   removeDocument,
   markDocumentAsLatest,
   uploadCustomerLogo,
-  getCustomerDropdown
+  getCustomerDropdown,
+  bulkCreateCustomers
 } from '../controllers/customer.controller';
 import { authenticate, authorizePermission } from '../middlewares/auth.middleware';
 import { upload } from '../middlewares/upload.middleware';
@@ -25,6 +26,7 @@ router.use(authenticate);
 router.get('/', authorizePermission('customers.view'), getCustomers);
 router.get('/dropdown', authorizePermission('customers.view'), getCustomerDropdown);
 router.post('/', authorizePermission('customers.create'), createCustomer);
+router.post('/bulk', authorizePermission('customers.create'), bulkCreateCustomers);
 router.get('/:id', authorizePermission('customers.view'), getCustomerById);
 router.put('/:id', authorizePermission('customers.edit'), updateCustomer);
 router.patch('/:id/status', authorizePermission('customers.edit'), updateCustomer);

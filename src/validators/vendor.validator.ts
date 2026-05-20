@@ -79,3 +79,8 @@ export const vendorSchema = z.object({
     }
   }
 });
+
+export const bulkCreateVendorSchema = z.object({
+  vendors: z.array(vendorSchema).min(1, 'At least one vendor is required for bulk upload'),
+});
+

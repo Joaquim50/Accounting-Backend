@@ -355,4 +355,44 @@ export class VendorService {
       },
     });
   }
+
+  // 14. Bulk create vendors inside a database transaction
+  static async bulkCreateVendors(vendorsList: any[]) {
+    return prisma.$transaction(
+      vendorsList.map((vendor) => {
+        const companyName = vendor.vendorType === 'INDIVIDUAL' ? null : vendor.companyName;
+        return prisma.vendor.create({
+          data: {
+            vendorType: vendor.vendorType,
+            vendorName: vendor.vendorName,
+            companyName,
+            phoneNumber: vendor.phoneNumber,
+            email: vendor.email,
+            ccEmails: vendor.ccEmails || [],
+            status: vendor.status || VendorStatus.ACTIVE,
+            gstApplicable: vendor.gstApplicable ?? false,
+            gstinNumber: vendor.gstinNumber || null,
+            verifiedGstinName: vendor.verifiedGstinName || null,
+            panNumber: vendor.panNumber || null,
+            panName: vendor.panName || null,
+            tdsApplicable: vendor.tdsApplicable ?? false,
+            tdsSection: vendor.tdsSection || null,
+            tdsPercentage: vendor.tdsPercentage ? new Prisma.Decimal(vendor.tdsPercentage) : null,
+            addressLine1: vendor.addressLine1,
+            addressLine2: vendor.addressLine2 || null,
+            country: vendor.country || 'India',
+            state: vendor.state,
+            city: vendor.city,
+            pincode: vendor.pincode,
+            bankAccountHolderName: vendor.bankAccountHolderName || null,
+            bankName: vendor.bankName || null,
+            bankAccountNumber: vendor.bankAccountNumber || null,
+            bankIfscCode: vendor.bankIfscCode || null,
+            bankSwiftCode: vendor.bankSwiftCode || null,
+            bankBranchName: vendor.bankBranchName || null,
+          },
+        });
+      })
+    );
+  }
 }

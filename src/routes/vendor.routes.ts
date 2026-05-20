@@ -12,7 +12,8 @@ import {
   getVendorDocumentsByType,
   removeVendorDocument,
   markVendorDocumentAsLatest,
-  getVendorDropdown
+  getVendorDropdown,
+  bulkCreateVendors
 } from '../controllers/vendor.controller';
 import { authenticate, authorizePermission } from '../middlewares/auth.middleware';
 import { vendorUpload } from '../middlewares/vendorUpload.middleware';
@@ -25,6 +26,7 @@ router.use(authenticate);
 // Base vendor routes
 router.get('/vendors', authorizePermission('vendors.view'), getVendors);
 router.get('/vendors/dropdown', authorizePermission('vendors.view'), getVendorDropdown);
+router.post('/vendors/bulk', authorizePermission('vendors.create'), bulkCreateVendors);
 router.post('/vendors', authorizePermission('vendors.create'), createVendor);
 router.get('/vendors/:id', authorizePermission('vendors.view'), getVendorById);
 router.put('/vendors/:id', authorizePermission('vendors.edit'), updateVendor);

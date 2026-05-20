@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { VendorService } from '../services/vendor.service';
-import { vendorSchema } from '../validators/vendor.validator';
+import { vendorSchema, bulkCreateVendorSchema } from '../validators/vendor.validator';
 import { VendorStatus } from '@prisma/client';
+import { prisma } from '../db';
 import fs from 'fs';
 import path from 'path';  
 
@@ -381,6 +382,90 @@ export const getVendorDropdown = async (req: Request, res: Response, next: NextF
       success: true,
       message: 'Vendor dropdown retrieved successfully',
       data: vendors,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// 14. Bulk create vendors
+export const bulkCreateVendors = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const parsedData = bulkCreateVendorSchema.parse(req.body);
+    const { vendors } = parsedData;
+
+    // Check for duplicate companyNames or emails in database
+    const companyNames = vendors
+      .filter((v) => v.vendorType === 'COMPANY' && v.companyName)
+      .map((v) => v.companyName as string);
+    const emails = vendors.map((v) => v.email);
+
+    const existingVendors = await prisma.vendor.findMany({
+      where: {
+        OR: [
+          ...(companyNames.length > 0 ? [{ companyName: { in: companyNames, mode: 'insensitive' as const } }] : []),
+          { email: { in: emails, mode: 'insensitive' as const } }
+        ],
+        deletedAt: null
+      }
+    });
+
+    const existingCompanyNames = new Set(
+      existingVendors
+        .filter((v) => v.companyName)
+        .map((v) => v.companyName!.toLowerCase())
+    );
+    const existingEmails = new Set(existingVendors.map((v) => v.email.toLowerCase()));
+
+    const duplicates: string[] = [];
+    for (const vendor of vendors) {
+      if (
+        vendor.vendorType === 'COMPANY' &&
+        vendor.companyName &&
+        existingCompanyNames.has(vendor.companyName.toLowerCase())
+      ) {
+        duplicates.push(`Company name "${vendor.companyName}" already exists in the system.`);
+      }
+      if (existingEmails.has(vendor.email.toLowerCase())) {
+        duplicates.push(`Email "${vendor.email}" already exists in the system.`);
+      }
+    }
+
+    // Check duplicates within the uploaded list itself
+    const seenCompanyNames = new Set<string>();
+    const seenEmails = new Set<string>();
+    for (let i = 0; i < vendors.length; i++) {
+      const v = vendors[i];
+      const lowerEmail = v.email.toLowerCase();
+
+      if (v.vendorType === 'COMPANY' && v.companyName) {
+        const lowerName = v.companyName.toLowerCase();
+        if (seenCompanyNames.has(lowerName)) {
+          duplicates.push(`Duplicate company name in upload list: "${v.companyName}" (row ${i + 1})`);
+        }
+        seenCompanyNames.add(lowerName);
+      }
+
+      if (seenEmails.has(lowerEmail)) {
+        duplicates.push(`Duplicate email in upload list: "${v.email}" (row ${i + 1})`);
+      }
+      seenEmails.add(lowerEmail);
+    }
+
+    if (duplicates.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed: Duplicate vendor records detected.',
+        errors: duplicates
+      });
+    }
+
+    const createdVendors = await VendorService.bulkCreateVendors(vendors);
+
+    res.status(201).json({
+      success: true,
+      message: `${createdVendors.length} vendors imported successfully`,
+      data: createdVendors
     });
   } catch (error) {
     next(error);

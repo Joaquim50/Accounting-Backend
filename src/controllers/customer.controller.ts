@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../db';
-import { customerSchema } from '../validators/customer.validator';
+import { customerSchema, bulkCreateCustomerSchema } from '../validators/customer.validator';
 import fs from 'fs';
 import path from 'path';
 
@@ -448,4 +448,90 @@ export const getCustomerDropdown = async (req: Request, res: Response, next: Nex
     next(error);
   }
 };
+
+// Bulk create customers
+export const bulkCreateCustomers = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const parsedData = bulkCreateCustomerSchema.parse(req.body);
+    const { customers } = parsedData;
+
+    // check for duplicate companyNames or emails in database
+    const companyNames = customers.map(c => c.companyName);
+    const emails = customers.map(c => c.email);
+
+    const existingCustomers = await prisma.customer.findMany({
+      where: {
+        OR: [
+          { companyName: { in: companyNames, mode: 'insensitive' } },
+          { email: { in: emails, mode: 'insensitive' } }
+        ],
+        deletedAt: null
+      }
+    });
+
+    const existingCompanyNames = new Set(existingCustomers.map(c => c.companyName.toLowerCase()));
+    const existingEmails = new Set(existingCustomers.map(c => c.email.toLowerCase()));
+
+    const duplicates: string[] = [];
+    for (const customer of customers) {
+      if (existingCompanyNames.has(customer.companyName.toLowerCase())) {
+        duplicates.push(`Company name "${customer.companyName}" already exists in the system.`);
+      }
+      if (existingEmails.has(customer.email.toLowerCase())) {
+        duplicates.push(`Email "${customer.email}" already exists in the system.`);
+      }
+    }
+
+    // Check duplicates within the uploaded list itself
+    const seenCompanyNames = new Set<string>();
+    const seenEmails = new Set<string>();
+    for (let i = 0; i < customers.length; i++) {
+      const c = customers[i];
+      const lowerName = c.companyName.toLowerCase();
+      const lowerEmail = c.email.toLowerCase();
+      
+      if (seenCompanyNames.has(lowerName)) {
+        duplicates.push(`Duplicate company name in upload list: "${c.companyName}" (row ${i + 1})`);
+      }
+      if (seenEmails.has(lowerEmail)) {
+        duplicates.push(`Duplicate email in upload list: "${c.email}" (row ${i + 1})`);
+      }
+      seenCompanyNames.add(lowerName);
+      seenEmails.add(lowerEmail);
+    }
+
+    if (duplicates.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed: Duplicate customer records detected.',
+        errors: duplicates
+      });
+    }
+
+    // Use a transaction for atomic insertion
+    const createdCustomers = await prisma.$transaction(
+      customers.map(customer =>
+        prisma.customer.create({
+          data: {
+            ...customer,
+            ccEmails: customer.ccEmails || [],
+            status: customer.status || 'ACTIVE',
+            gstApplicable: customer.gstApplicable ?? false,
+            tdsApplicable: customer.tdsApplicable ?? false,
+            panNumber: customer.panNumber || null,
+          }
+        })
+      )
+    );
+
+    res.status(201).json({
+      success: true,
+      message: `${createdCustomers.length} customers imported successfully`,
+      data: createdCustomers
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
