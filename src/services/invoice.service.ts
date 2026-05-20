@@ -157,10 +157,21 @@ export class InvoiceService {
     const financials = this.calculateFinancials(Number(baseAmount), Number(gstPct), Number(tdsPct));
     
     const newExpected = financials.expectedReceiptAmount;
-    const currentReceived = Number(existing.amountReceived);
+    const currentReceived = data.amountReceived !== undefined ? Number(data.amountReceived) : Number(existing.amountReceived);
     const newOutstanding = Number((newExpected - currentReceived).toFixed(2));
     
-    const newStatus = this.determinePIStatus(newExpected, currentReceived, existing.status);
+    let inputStatus = existing.status;
+    if (data.status) {
+      const upper = String(data.status).toUpperCase();
+      if (upper === 'PENDING') inputStatus = ProformaInvoiceStatus.PENDING;
+      else if (upper === 'PAID') inputStatus = ProformaInvoiceStatus.PAID;
+      else if (upper === 'SHORTFALL') inputStatus = ProformaInvoiceStatus.SHORTFALL;
+      else if (upper === 'CANCELLED') inputStatus = ProformaInvoiceStatus.CANCELLED;
+      else if (upper === 'PARTIALLY_PAID' || upper === 'PARTIAL') inputStatus = ProformaInvoiceStatus.PARTIALLY_PAID;
+      else if (upper === 'DRAFT') inputStatus = ProformaInvoiceStatus.DRAFT;
+      else if (upper === 'SENT') inputStatus = ProformaInvoiceStatus.SENT;
+    }
+    const newStatus = this.determinePIStatus(newExpected, currentReceived, inputStatus);
 
     return await prisma.proformaInvoice.update({
       where: { id },
@@ -242,7 +253,8 @@ export class InvoiceService {
         orderBy: { createdAt: 'desc' },
         include: {
           customer: { select: { id: true, companyName: true, contactPerson: true } },
-          projectedSale: { select: { id: true, projectName: true } }
+          projectedSale: { select: { id: true, projectName: true, projectType: true } },
+          milestone: { select: { id: true, milestoneName: true, percentage: true } }
         }
       })
     ]);
@@ -424,7 +436,7 @@ export class InvoiceService {
     const financials = this.calculateFinancials(Number(baseAmount), Number(gstPct), Number(tdsPct));
     
     const newExpected = financials.expectedReceiptAmount;
-    const currentReceived = Number(existing.amountReceived);
+    const currentReceived = data.amountReceived !== undefined ? Number(data.amountReceived) : Number(existing.amountReceived);
     const newOutstanding = Number((newExpected - currentReceived).toFixed(2));
 
     return await prisma.taxInvoice.update({
@@ -500,7 +512,8 @@ export class InvoiceService {
         orderBy: { createdAt: 'desc' },
         include: {
           customer: { select: { id: true, companyName: true, contactPerson: true } },
-          projectedSale: { select: { id: true, projectName: true } }
+          projectedSale: { select: { id: true, projectName: true, projectType: true } },
+          milestone: { select: { id: true, milestoneName: true, percentage: true } }
         }
       })
     ]);

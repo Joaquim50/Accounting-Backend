@@ -20,7 +20,10 @@ export const baseProformaInvoiceObject = z.object({
 
 export const createProformaInvoiceSchema = baseProformaInvoiceObject;
 
-export const updateProformaInvoiceSchema = baseProformaInvoiceObject.partial();
+export const updateProformaInvoiceSchema = baseProformaInvoiceObject.partial().extend({
+  amountReceived: z.number().min(0).optional().nullable(),
+  status: z.nativeEnum(ProformaInvoiceStatus).optional(),
+});
 
 export const updateProformaInvoiceStatusSchema = z.object({
   status: z.nativeEnum(ProformaInvoiceStatus),
@@ -65,7 +68,10 @@ export const createTaxInvoiceSchema = taxInvoiceCoreObject.superRefine((data, ct
   }
 });
 
-export const updateTaxInvoiceSchema = taxInvoiceCoreObject.partial();
+export const updateTaxInvoiceSchema = taxInvoiceCoreObject.partial().extend({
+  amountReceived: z.number().min(0).optional().nullable(),
+  status: z.nativeEnum(TaxInvoiceStatus).optional(),
+});
 
 export const updateTaxInvoiceStatusSchema = z.object({
   status: z.nativeEnum(TaxInvoiceStatus),

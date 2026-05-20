@@ -117,17 +117,23 @@ export const updateCustomer = async (req: Request, res: Response, next: NextFunc
     const id = req.params.id as string;
     const validatedData = customerSchema.partial().parse(req.body);
 
-    const customerExists = await prisma.customer.findUnique({ where: { id, deletedAt: null } });
+    const customerExists = await prisma.customer.findUnique({ where: { id } });
     if (!customerExists) {
       return res.status(404).json({ success: false, message: 'Customer not found' });
     }
 
+    const dataToUpdate: any = {
+      ...validatedData,
+      panNumber: validatedData.panNumber === '' ? null : validatedData.panNumber,
+    };
+
+    if (validatedData.status === 'ACTIVE') {
+      dataToUpdate.deletedAt = null;
+    }
+
     const customer = await prisma.customer.update({
       where: { id },
-      data: {
-        ...validatedData,
-        panNumber: validatedData.panNumber === '' ? null : validatedData.panNumber,
-      }
+      data: dataToUpdate
     });
 
     res.json({ success: true, message: 'Customer updated successfully', data: customer });

@@ -15,6 +15,8 @@ const employee_routes_1 = __importDefault(require("./routes/employee.routes"));
 const payment_routes_1 = __importDefault(require("./routes/payment.routes"));
 const projectedSale_routes_1 = __importDefault(require("./routes/projectedSale.routes"));
 const amc_routes_1 = __importDefault(require("./routes/amc.routes"));
+const invoice_routes_1 = __importDefault(require("./routes/invoice.routes"));
+const billing_routes_1 = __importDefault(require("./routes/billing.routes"));
 const errorHandler_1 = require("./middlewares/errorHandler");
 const path_1 = __importDefault(require("path"));
 dotenv_1.default.config();
@@ -29,7 +31,7 @@ app.use((0, cors_1.default)({
 // Rate limiting - prevents brute force attacks
 const apiLimiter = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+    max: process.env.NODE_ENV === 'production' ? 100 : 10000, // Limit each IP
     standardHeaders: true,
     legacyHeaders: false,
 });
@@ -46,6 +48,8 @@ app.use('/api/employees', employee_routes_1.default);
 app.use('/api/payments', payment_routes_1.default);
 app.use('/api/projected-sales', projectedSale_routes_1.default);
 app.use('/api/amcs', amc_routes_1.default);
+app.use('/api/invoices', invoice_routes_1.default);
+app.use('/api/billing', billing_routes_1.default);
 app.use('/api', vendor_routes_1.default);
 // Health check endpoint
 app.get('/health', (req, res) => {
