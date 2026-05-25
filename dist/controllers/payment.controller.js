@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deletePayment = exports.updatePayment = exports.createPayment = exports.getPaymentById = exports.getPayments = void 0;
+exports.deletePayment = exports.updatePayment = exports.bulkCreatePayments = exports.createPayment = exports.getPaymentById = exports.getPayments = void 0;
 const payment_service_1 = require("../services/payment.service");
 const payment_validator_1 = require("../validators/payment.validator");
 // 1. Get all payments with filters and pagination
@@ -66,6 +66,23 @@ const createPayment = async (req, res, next) => {
     }
 };
 exports.createPayment = createPayment;
+// 3.5 Bulk create payments
+const bulkCreatePayments = async (req, res, next) => {
+    try {
+        const parsedData = payment_validator_1.bulkCreatePaymentSchema.parse(req.body);
+        const payments = await payment_service_1.PaymentService.bulkCreatePayments(parsedData.payments);
+        res.status(201).json({
+            success: true,
+            message: `${payments.length} payment records created successfully via bulk upload`,
+            data: payments,
+        });
+    }
+    catch (error) {
+        console.error("Bulk Upload Error:", error);
+        next(error);
+    }
+};
+exports.bulkCreatePayments = bulkCreatePayments;
 // 4. Update an existing payment record
 const updatePayment = async (req, res, next) => {
     try {

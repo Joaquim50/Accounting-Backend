@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updatePaymentSchema = exports.createPaymentSchema = void 0;
+exports.updatePaymentSchema = exports.bulkCreatePaymentSchema = exports.createPaymentSchema = void 0;
 const zod_1 = require("zod");
 const client_1 = require("@prisma/client");
 // 1. Base Zod object schema (without refinements)
@@ -102,7 +102,11 @@ exports.createPaymentSchema = basePaymentObject.superRefine((data, ctx) => {
         }
     }
 });
-// 3. Schema for updating a Payment (all fields optional, refinement is defensive)
+// 3. Schema for bulk creating Payments
+exports.bulkCreatePaymentSchema = zod_1.z.object({
+    payments: zod_1.z.array(exports.createPaymentSchema).min(1, 'At least one payment is required for bulk upload'),
+});
+// 4. Schema for updating a Payment (all fields optional, refinement is defensive)
 exports.updatePaymentSchema = basePaymentObject.partial().superRefine((data, ctx) => {
     // Only apply refinements if the field triggers are actually updated in the payload
     // 1. Validate Party Type selection if partyType is provided

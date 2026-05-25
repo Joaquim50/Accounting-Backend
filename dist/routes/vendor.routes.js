@@ -10,6 +10,7 @@ router.use(auth_middleware_1.authenticate);
 // Base vendor routes
 router.get('/vendors', (0, auth_middleware_1.authorizePermission)('vendors.view'), vendor_controller_1.getVendors);
 router.get('/vendors/dropdown', (0, auth_middleware_1.authorizePermission)('vendors.view'), vendor_controller_1.getVendorDropdown);
+router.post('/vendors/bulk', (0, auth_middleware_1.authorizePermission)('vendors.create'), vendor_controller_1.bulkCreateVendors);
 router.post('/vendors', (0, auth_middleware_1.authorizePermission)('vendors.create'), vendor_controller_1.createVendor);
 router.get('/vendors/:id', (0, auth_middleware_1.authorizePermission)('vendors.view'), vendor_controller_1.getVendorById);
 router.put('/vendors/:id', (0, auth_middleware_1.authorizePermission)('vendors.edit'), vendor_controller_1.updateVendor);

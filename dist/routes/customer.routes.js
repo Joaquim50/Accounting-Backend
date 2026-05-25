@@ -11,6 +11,7 @@ router.use(auth_middleware_1.authenticate);
 router.get('/', (0, auth_middleware_1.authorizePermission)('customers.view'), customer_controller_1.getCustomers);
 router.get('/dropdown', (0, auth_middleware_1.authorizePermission)('customers.view'), customer_controller_1.getCustomerDropdown);
 router.post('/', (0, auth_middleware_1.authorizePermission)('customers.create'), customer_controller_1.createCustomer);
+router.post('/bulk', (0, auth_middleware_1.authorizePermission)('customers.create'), customer_controller_1.bulkCreateCustomers);
 router.get('/:id', (0, auth_middleware_1.authorizePermission)('customers.view'), customer_controller_1.getCustomerById);
 router.put('/:id', (0, auth_middleware_1.authorizePermission)('customers.edit'), customer_controller_1.updateCustomer);
 router.patch('/:id/status', (0, auth_middleware_1.authorizePermission)('customers.edit'), customer_controller_1.updateCustomer);

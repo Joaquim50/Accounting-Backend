@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.customerSchema = void 0;
+exports.bulkCreateCustomerSchema = exports.customerSchema = void 0;
 const zod_1 = require("zod");
 exports.customerSchema = zod_1.z.object({
     companyName: zod_1.z.string().min(2, "Company name is required"),
@@ -22,4 +22,7 @@ exports.customerSchema = zod_1.z.object({
     panNumber: zod_1.z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Must be a valid Indian PAN format").optional().or(zod_1.z.literal('')),
     tdsApplicable: zod_1.z.boolean().optional(),
     tdsPercentage: zod_1.z.number().min(0).max(100).optional()
+});
+exports.bulkCreateCustomerSchema = zod_1.z.object({
+    customers: zod_1.z.array(exports.customerSchema).min(1, 'At least one customer is required for bulk upload'),
 });

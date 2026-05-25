@@ -3,10 +3,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getVendorDropdown = exports.markVendorDocumentAsLatest = exports.removeVendorDocument = exports.getVendorDocumentsByType = exports.getVendorDocuments = exports.uploadVendorDocuments = exports.uploadVendorLogo = exports.deleteVendor = exports.updateVendorStatus = exports.updateVendor = exports.createVendor = exports.getVendorById = exports.getVendors = void 0;
+exports.bulkCreateVendors = exports.getVendorDropdown = exports.markVendorDocumentAsLatest = exports.removeVendorDocument = exports.getVendorDocumentsByType = exports.getVendorDocuments = exports.uploadVendorDocuments = exports.uploadVendorLogo = exports.deleteVendor = exports.updateVendorStatus = exports.updateVendor = exports.createVendor = exports.getVendorById = exports.getVendors = void 0;
 const vendor_service_1 = require("../services/vendor.service");
 const vendor_validator_1 = require("../validators/vendor.validator");
 const client_1 = require("@prisma/client");
+const db_1 = require("../db");
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 // 1. Get all vendors
@@ -371,3 +372,74 @@ const getVendorDropdown = async (req, res, next) => {
     }
 };
 exports.getVendorDropdown = getVendorDropdown;
+// 14. Bulk create vendors
+const bulkCreateVendors = async (req, res, next) => {
+    try {
+        const parsedData = vendor_validator_1.bulkCreateVendorSchema.parse(req.body);
+        const { vendors } = parsedData;
+        // Check for duplicate companyNames or emails in database
+        const companyNames = vendors
+            .filter((v) => v.vendorType === 'COMPANY' && v.companyName)
+            .map((v) => v.companyName);
+        const emails = vendors.map((v) => v.email);
+        const existingVendors = await db_1.prisma.vendor.findMany({
+            where: {
+                OR: [
+                    ...(companyNames.length > 0 ? [{ companyName: { in: companyNames, mode: 'insensitive' } }] : []),
+                    { email: { in: emails, mode: 'insensitive' } }
+                ],
+                deletedAt: null
+            }
+        });
+        const existingCompanyNames = new Set(existingVendors
+            .filter((v) => v.companyName)
+            .map((v) => v.companyName.toLowerCase()));
+        const existingEmails = new Set(existingVendors.map((v) => v.email.toLowerCase()));
+        const duplicates = [];
+        for (const vendor of vendors) {
+            if (vendor.vendorType === 'COMPANY' &&
+                vendor.companyName &&
+                existingCompanyNames.has(vendor.companyName.toLowerCase())) {
+                duplicates.push(`Company name "${vendor.companyName}" already exists in the system.`);
+            }
+            if (existingEmails.has(vendor.email.toLowerCase())) {
+                duplicates.push(`Email "${vendor.email}" already exists in the system.`);
+            }
+        }
+        // Check duplicates within the uploaded list itself
+        const seenCompanyNames = new Set();
+        const seenEmails = new Set();
+        for (let i = 0; i < vendors.length; i++) {
+            const v = vendors[i];
+            const lowerEmail = v.email.toLowerCase();
+            if (v.vendorType === 'COMPANY' && v.companyName) {
+                const lowerName = v.companyName.toLowerCase();
+                if (seenCompanyNames.has(lowerName)) {
+                    duplicates.push(`Duplicate company name in upload list: "${v.companyName}" (row ${i + 1})`);
+                }
+                seenCompanyNames.add(lowerName);
+            }
+            if (seenEmails.has(lowerEmail)) {
+                duplicates.push(`Duplicate email in upload list: "${v.email}" (row ${i + 1})`);
+            }
+            seenEmails.add(lowerEmail);
+        }
+        if (duplicates.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Validation failed: Duplicate vendor records detected.',
+                errors: duplicates
+            });
+        }
+        const createdVendors = await vendor_service_1.VendorService.bulkCreateVendors(vendors);
+        res.status(201).json({
+            success: true,
+            message: `${createdVendors.length} vendors imported successfully`,
+            data: createdVendors
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.bulkCreateVendors = bulkCreateVendors;

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.vendorSchema = void 0;
+exports.bulkCreateVendorSchema = exports.vendorSchema = void 0;
 const zod_1 = require("zod");
 exports.vendorSchema = zod_1.z.object({
     vendorType: zod_1.z.enum(['INDIVIDUAL', 'COMPANY']),
@@ -74,4 +74,7 @@ exports.vendorSchema = zod_1.z.object({
             });
         }
     }
+});
+exports.bulkCreateVendorSchema = zod_1.z.object({
+    vendors: zod_1.z.array(exports.vendorSchema).min(1, 'At least one vendor is required for bulk upload'),
 });

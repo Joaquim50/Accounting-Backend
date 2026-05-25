@@ -8,6 +8,7 @@ const router = (0, express_1.Router)();
 router.use(auth_middleware_1.authenticate);
 // Core Payment routing
 router.get('/', (0, auth_middleware_1.authorizePermission)('expenses.view'), payment_controller_1.getPayments);
+router.post('/bulk', (0, auth_middleware_1.authorizePermission)('expenses.create'), payment_controller_1.bulkCreatePayments);
 router.post('/', (0, auth_middleware_1.authorizePermission)('expenses.create'), payment_controller_1.createPayment);
 router.get('/:id', (0, auth_middleware_1.authorizePermission)('expenses.view'), payment_controller_1.getPaymentById);
 router.put('/:id', (0, auth_middleware_1.authorizePermission)('expenses.edit'), payment_controller_1.updatePayment);

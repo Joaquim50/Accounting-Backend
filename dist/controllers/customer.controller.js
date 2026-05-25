@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCustomerDropdown = exports.uploadCustomerLogo = exports.markDocumentAsLatest = exports.removeDocument = exports.getCustomerDocumentsByType = exports.getCustomerDocuments = exports.uploadDocuments = exports.deleteCustomer = exports.updateCustomer = exports.createCustomer = exports.getCustomerById = exports.getCustomers = void 0;
+exports.bulkCreateCustomers = exports.getCustomerDropdown = exports.uploadCustomerLogo = exports.markDocumentAsLatest = exports.removeDocument = exports.getCustomerDocumentsByType = exports.getCustomerDocuments = exports.uploadDocuments = exports.deleteCustomer = exports.updateCustomer = exports.createCustomer = exports.getCustomerById = exports.getCustomers = void 0;
 const db_1 = require("../db");
 const customer_validator_1 = require("../validators/customer.validator");
 const fs_1 = __importDefault(require("fs"));
@@ -414,3 +414,76 @@ const getCustomerDropdown = async (req, res, next) => {
     }
 };
 exports.getCustomerDropdown = getCustomerDropdown;
+// Bulk create customers
+const bulkCreateCustomers = async (req, res, next) => {
+    try {
+        const parsedData = customer_validator_1.bulkCreateCustomerSchema.parse(req.body);
+        const { customers } = parsedData;
+        // check for duplicate companyNames or emails in database
+        const companyNames = customers.map(c => c.companyName);
+        const emails = customers.map(c => c.email);
+        const existingCustomers = await db_1.prisma.customer.findMany({
+            where: {
+                OR: [
+                    { companyName: { in: companyNames, mode: 'insensitive' } },
+                    { email: { in: emails, mode: 'insensitive' } }
+                ],
+                deletedAt: null
+            }
+        });
+        const existingCompanyNames = new Set(existingCustomers.map(c => c.companyName.toLowerCase()));
+        const existingEmails = new Set(existingCustomers.map(c => c.email.toLowerCase()));
+        const duplicates = [];
+        for (const customer of customers) {
+            if (existingCompanyNames.has(customer.companyName.toLowerCase())) {
+                duplicates.push(`Company name "${customer.companyName}" already exists in the system.`);
+            }
+            if (existingEmails.has(customer.email.toLowerCase())) {
+                duplicates.push(`Email "${customer.email}" already exists in the system.`);
+            }
+        }
+        // Check duplicates within the uploaded list itself
+        const seenCompanyNames = new Set();
+        const seenEmails = new Set();
+        for (let i = 0; i < customers.length; i++) {
+            const c = customers[i];
+            const lowerName = c.companyName.toLowerCase();
+            const lowerEmail = c.email.toLowerCase();
+            if (seenCompanyNames.has(lowerName)) {
+                duplicates.push(`Duplicate company name in upload list: "${c.companyName}" (row ${i + 1})`);
+            }
+            if (seenEmails.has(lowerEmail)) {
+                duplicates.push(`Duplicate email in upload list: "${c.email}" (row ${i + 1})`);
+            }
+            seenCompanyNames.add(lowerName);
+            seenEmails.add(lowerEmail);
+        }
+        if (duplicates.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Validation failed: Duplicate customer records detected.',
+                errors: duplicates
+            });
+        }
+        // Use a transaction for atomic insertion
+        const createdCustomers = await db_1.prisma.$transaction(customers.map(customer => db_1.prisma.customer.create({
+            data: {
+                ...customer,
+                ccEmails: customer.ccEmails || [],
+                status: customer.status || 'ACTIVE',
+                gstApplicable: customer.gstApplicable ?? false,
+                tdsApplicable: customer.tdsApplicable ?? false,
+                panNumber: customer.panNumber || null,
+            }
+        })));
+        res.status(201).json({
+            success: true,
+            message: `${createdCustomers.length} customers imported successfully`,
+            data: createdCustomers
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.bulkCreateCustomers = bulkCreateCustomers;
