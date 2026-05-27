@@ -130,8 +130,8 @@ export class RoleService {
     });
   }
 
-  // 5. Delete role (soft delete)
-  static async deleteRole(id: string) {
+  // 5. Delete role (soft or hard delete)
+  static async deleteRole(id: string, hard: boolean = false) {
     const role = await prisma.role.findFirst({
       where: { id, deletedAt: null }
     });
@@ -153,10 +153,16 @@ export class RoleService {
       throw new Error('Cannot delete role that is assigned to active users');
     }
 
-    return prisma.role.update({
-      where: { id },
-      data: { deletedAt: new Date() }
-    });
+    if (hard) {
+      await prisma.role.delete({ where: { id } });
+      return { type: 'HARD' };
+    } else {
+      await prisma.role.update({
+        where: { id },
+        data: { deletedAt: new Date() }
+      });
+      return { type: 'SOFT' };
+    }
   }
 
   // 6. Update role permissions matrix

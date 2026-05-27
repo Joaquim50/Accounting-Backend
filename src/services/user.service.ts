@@ -229,8 +229,8 @@ export class UserService {
     return safeUser;
   }
 
-  // 5. Delete user (soft delete)
-  static async deleteUser(id: string) {
+  // 5. Delete user (soft or hard delete)
+  static async deleteUser(id: string, hard: boolean = false) {
     const user = await prisma.user.findFirst({
       where: { id, deletedAt: null }
     });
@@ -251,12 +251,18 @@ export class UserService {
       }
     }
 
-    return prisma.user.update({
-      where: { id },
-      data: {
-        deletedAt: new Date()
-      }
-    });
+    if (hard) {
+      await prisma.user.delete({ where: { id } });
+      return { type: 'HARD' };
+    } else {
+      await prisma.user.update({
+        where: { id },
+        data: {
+          deletedAt: new Date()
+        }
+      });
+      return { type: 'SOFT' };
+    }
   }
 
   // 6. User Status toggle (Activate / Deactivate)

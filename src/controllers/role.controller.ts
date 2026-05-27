@@ -80,14 +80,15 @@ export const updateRole = async (req: Request, res: Response, next: NextFunction
   }
 };
 
-// 5. Delete role (soft delete)
+// 5. Delete role (soft or hard delete)
 export const deleteRole = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
-    await RoleService.deleteRole(id);
+    const isHardDelete = req.query.hard === 'true';
+    const result = await RoleService.deleteRole(id, isHardDelete);
     res.json({
       success: true,
-      message: 'Role deleted successfully'
+      message: result.type === 'HARD' ? 'Role permanently deleted' : 'Role soft deleted successfully'
     });
   } catch (error: any) {
     res.status(400).json({ success: false, message: error.message });

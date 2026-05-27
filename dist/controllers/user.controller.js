@@ -99,14 +99,15 @@ const updateUser = async (req, res, next) => {
     }
 };
 exports.updateUser = updateUser;
-// 5. Delete user (soft delete)
+// 5. Delete user (soft or hard delete)
 const deleteUser = async (req, res, next) => {
     try {
         const id = req.params.id;
-        await user_service_1.UserService.deleteUser(id);
+        const isHardDelete = req.query.hard === 'true';
+        const result = await user_service_1.UserService.deleteUser(id, isHardDelete);
         res.json({
             success: true,
-            message: 'User deleted successfully'
+            message: result.type === 'HARD' ? 'User permanently deleted' : 'User soft deleted successfully'
         });
     }
     catch (error) {

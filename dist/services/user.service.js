@@ -185,8 +185,8 @@ class UserService {
         const { passwordHash, ...safeUser } = updatedUser;
         return safeUser;
     }
-    // 5. Delete user (soft delete)
-    static async deleteUser(id) {
+    // 5. Delete user (soft or hard delete)
+    static async deleteUser(id, hard = false) {
         const user = await db_1.prisma.user.findFirst({
             where: { id, deletedAt: null }
         });
@@ -204,12 +204,19 @@ class UserService {
                 throw new Error('Cannot delete the last remaining active Super Admin');
             }
         }
-        return db_1.prisma.user.update({
-            where: { id },
-            data: {
-                deletedAt: new Date()
-            }
-        });
+        if (hard) {
+            await db_1.prisma.user.delete({ where: { id } });
+            return { type: 'HARD' };
+        }
+        else {
+            await db_1.prisma.user.update({
+                where: { id },
+                data: {
+                    deletedAt: new Date()
+                }
+            });
+            return { type: 'SOFT' };
+        }
     }
     // 6. User Status toggle (Activate / Deactivate)
     static async updateUserStatus(id, status, updatedBy) {
